@@ -1,4 +1,4 @@
-<div *ngFor="let customer of customers">
+<div *ngFor="let customer of customers | async">
     <h3>
         <a [title]="customer.name + ' details'" [routerLink]="['/customers', customer.id]">
           {{ customer.name }}

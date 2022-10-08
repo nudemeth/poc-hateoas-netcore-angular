@@ -48,7 +48,7 @@ namespace Customer.Api.Controllers
 
             return Ok(new
             {
-                value = toReturn,
+                items = toReturn,
                 links = links
             });
         }
@@ -176,7 +176,7 @@ namespace Customer.Api.Controllers
 
             foreach (var property in customer.GetType().GetProperties())
             {
-                dictionary.Add(property.Name, property.GetValue(customer));
+                dictionary.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Name), property.GetValue(customer));
             }
 
             customerWithLinks.links = links;

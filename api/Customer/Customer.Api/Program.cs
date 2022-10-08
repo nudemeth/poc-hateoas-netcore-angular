@@ -1,12 +1,20 @@
 using Customer.Api;
 using Customer.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(opt =>
+{
+    opt.AddDefaultPolicy(policy => policy.AllowAnyOrigin());
+});
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(opt =>
+{
+    opt.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,5 +35,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors();
 
 app.Run();
