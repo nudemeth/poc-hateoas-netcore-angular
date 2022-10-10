@@ -1,7 +1,18 @@
-<div *ngFor="let customer of customers | async">
-    <h3>
-        <a [title]="customer.name + ' details'" [routerLink]="['/customers', customer.id]">
-          {{ customer.name }}
-        </a>
-    </h3>
-</div>
+<table class="customer-list">
+  <tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Created At</th>
+    <th>Actions</th>
+  </tr>
+  <tr *ngFor="let customer of customers | async">
+    <td>{{ customer.id }}</td>
+    <td>{{ customer.name }}</td>
+    <td>{{ customer.createdAt }}</td>
+    <td>
+      <a [title]="customer.name + ' details'" [routerLink]="['/customers', customer.id]">
+        Edit
+      </a>
+    </td>
+  </tr>
+</table>
