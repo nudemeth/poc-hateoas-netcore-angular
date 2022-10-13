@@ -26,12 +26,12 @@ namespace Customer.Api.Controllers
             [FromQuery] string? name,
             [FromQuery] int page,
             [FromQuery] int limit,
-            [FromQuery] string? sortBy)
+            [FromQuery] string? sort)
         {
             var pageWithDefault = page == 0 ? 1 : page;
             var limitWithDefault = limit == 0 ? 20 : limit;
             var offset = pageWithDefault == 1 ? 0 : (pageWithDefault - 1) * limitWithDefault;
-            var customers = await customerRepository.List(name, offset, limitWithDefault, sortBy);
+            var customers = await customerRepository.List(name, offset, limitWithDefault, sort);
             var count = await customerRepository.Count(name);
 
             var paginationMetadata = new
@@ -43,7 +43,6 @@ namespace Customer.Api.Controllers
 
             Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
-            var links = CreateLinksForCollection(name, pageWithDefault, limitWithDefault, sortBy, count);
             var toReturn = customers.Select(x => ExpandSingleItem(x));
 
             return Ok(new
@@ -51,7 +50,14 @@ namespace Customer.Api.Controllers
                 _embedded = new {
                     customers = toReturn
                 },
-                _links = links
+                _links = new
+                {
+                    self = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List))),
+                    create = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add))),
+                    first = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List))),
+                    next = "",
+                    previous = "",
+                },
             });
         }
 
@@ -119,13 +125,13 @@ namespace Customer.Api.Controllers
 
             return Ok(ExpandSingleItem(existingCustomer));
         }
-
+        /*
         private List<Link> CreateLinksForCollection(string name, int page, int limit, string sortBy, int count)
         {
             var links = new List<Link>();
 
             links.Add(
-             new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add)), "create", "POST"));
+             new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add))));
 
             // self 
             links.Add(
@@ -168,12 +174,12 @@ namespace Customer.Api.Controllers
             }
 
             return links;
-        }
+        }*/
 
         private dynamic ExpandSingleItem(CustomerEntity customer)
         {
             dynamic customerWithLinks = new ExpandoObject();
-            var links = GetLinks(customer.Id);
+            var link = GetLinks(customer.Id);
             var dictionary = (IDictionary<string, object>)customerWithLinks;
 
             foreach (var property in customer.GetType().GetProperties())
@@ -181,31 +187,19 @@ namespace Customer.Api.Controllers
                 dictionary.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Name), property.GetValue(customer));
             }
 
-            customerWithLinks._links = links;
+            customerWithLinks._links = new
+            {
+                self = link,
+                delete = link,
+                update = link,
+            };
 
             return customerWithLinks;
         }
 
-        private IEnumerable<Link> GetLinks(int id)
+        private Link GetLinks(int id)
         {
-            var links = new List<Link>();
-
-            links.Add(
-              new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Get), values: new { id = id }),
-              "self",
-              "GET"));
-
-            links.Add(
-              new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Delete), values: new { id = id }),
-              "delete",
-              "DELETE"));
-
-            links.Add(
-               new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Update), values: new { id = id }),
-               "update",
-               "PUT"));
-
-            return links;
+            return new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Get), values: new { id = id }));
         }
     }
 }

@@ -35,13 +35,14 @@ namespace Customer.Api.Repositories
 
         public async Task<IEnumerable<CustomerEntity>> List(string? name, int offset, int limit, string? sortBy)
         {
-            var orderDirection = "asc";
+            var orderDirection = "ASC";
             var orderBy = "createdAt";
 
             if (!string.IsNullOrWhiteSpace(sortBy))
             {
-                orderBy = sortBy.Replace("-", "").Replace("+", "");
-                orderDirection = sortBy.StartsWith("-") ? "desc" : "asc";
+                var parts = sortBy.Split(",");
+                orderBy = parts[0];
+                orderDirection = parts.Length > 1 ? parts[1] : orderDirection;
             }
 
             var customers = await dbContext.Customers

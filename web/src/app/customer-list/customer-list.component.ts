@@ -20,7 +20,7 @@ export class CustomerListComponent implements OnInit {
   ngOnInit(): void {
     const queryParams = {
       sort: {
-        id: 'ASC' as SortOrder
+        name: 'ASC' as SortOrder
       }
     };
     this.customers = this.customerService.getCollection(queryParams).pipe(map(res => res.resources));
