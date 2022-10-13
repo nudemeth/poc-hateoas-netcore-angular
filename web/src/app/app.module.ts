@@ -7,6 +7,9 @@ import { AppComponent } from './app.component';
 import { CustomerListComponent } from './customer-list/customer-list.component';
 import { CustomerDetailsComponent } from './customer-details/customer-details.component';
 
+import { NgxHateoasClientModule, NgxHateoasClientConfigurationService  } from '@lagoshny/ngx-hateoas-client';
+import { Customer } from './customer';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -16,9 +19,21 @@ import { CustomerDetailsComponent } from './customer-details/customer-details.co
   imports: [
     BrowserModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NgxHateoasClientModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(hateoasConfig: NgxHateoasClientConfigurationService) {
+    hateoasConfig.configure({
+      http: {
+        rootUrl: 'https://localhost:7021'
+      },
+      useTypes: {
+        resources: [Customer]
+      }
+    });
+  }
+ }

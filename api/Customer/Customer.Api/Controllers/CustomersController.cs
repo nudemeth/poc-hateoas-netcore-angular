@@ -8,13 +8,13 @@ namespace Customer.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CustomerController : ControllerBase
+    public class CustomersController : ControllerBase
     {
         private readonly ICustomerRepository customerRepository;
         private readonly LinkGenerator linkGenerator;
-        private readonly ILogger<CustomerController> logger;
+        private readonly ILogger<CustomersController> logger;
 
-        public CustomerController(ICustomerRepository customerRepository, LinkGenerator linkGenerator, ILogger<CustomerController> logger)
+        public CustomersController(ICustomerRepository customerRepository, LinkGenerator linkGenerator, ILogger<CustomersController> logger)
         {
             this.customerRepository = customerRepository;
             this.linkGenerator = linkGenerator;
@@ -48,8 +48,10 @@ namespace Customer.Api.Controllers
 
             return Ok(new
             {
-                items = toReturn,
-                links = links
+                _embedded = new {
+                    customers = toReturn
+                },
+                _links = links
             });
         }
 
@@ -179,7 +181,7 @@ namespace Customer.Api.Controllers
                 dictionary.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Name), property.GetValue(customer));
             }
 
-            customerWithLinks.links = links;
+            customerWithLinks._links = links;
 
             return customerWithLinks;
         }

@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Customer } from '../customer';
+import { CustomerResourceService } from '../customer-resource-service';
+import { SortOrder } from '@lagoshny/ngx-hateoas-client';
 
 @Component({
   selector: 'app-customer-list',
@@ -13,11 +14,16 @@ export class CustomerListComponent implements OnInit {
 
   customers: Observable<Customer[]> | undefined;
 
-  constructor(private http: HttpClient) {
+  constructor(private customerService: CustomerResourceService) {
   }
 
   ngOnInit(): void {
-    this.customers = this.http.get<{items: Customer[]}>("https://localhost:7021/Customer").pipe(map(res => res.items));
+    const queryParams = {
+      sort: {
+        id: 'ASC' as SortOrder
+      }
+    };
+    this.customers = this.customerService.getCollection(queryParams).pipe(map(res => res.resources));
   }
 
 }
