@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Customer } from '../customer';
@@ -14,7 +15,7 @@ export class CustomerListComponent implements OnInit {
 
   customers: Observable<Customer[]> | undefined;
 
-  constructor(private customerService: CustomerResourceService) {
+  constructor(private customerService: CustomerResourceService, private router: Router) {
   }
 
   ngOnInit(): void {
@@ -26,4 +27,8 @@ export class CustomerListComponent implements OnInit {
     this.customers = this.customerService.getCollection(queryParams).pipe(map(res => res.resources));
   }
 
+  navigate(absoluteUrl: string): void {
+    const url = new URL(absoluteUrl);
+    this.router.navigateByUrl(url.pathname);
+  }
 }

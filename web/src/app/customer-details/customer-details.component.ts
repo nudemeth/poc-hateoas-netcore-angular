@@ -19,7 +19,7 @@ export class CustomerDetailsComponent implements OnInit {
     const routeParams = this.route.snapshot.paramMap;
     const customerIdFromRoute = Number(routeParams.get('customerId'));
 
-    this.customer = this.http.get<Customer>(`https://localhost:7021/Customer/${customerIdFromRoute}`);
+    this.customer = this.http.get<Customer>(`https://localhost:7021/customers/${customerIdFromRoute}`);
   }
 
 }

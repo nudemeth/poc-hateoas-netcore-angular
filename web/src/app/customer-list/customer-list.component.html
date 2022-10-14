@@ -10,7 +10,7 @@
     <td>{{ customer.name }}</td>
     <td>{{ customer.createdAt }}</td>
     <td>
-      <a [title]="customer.name + ' details'" [routerLink]="['/customers', customer.id]">
+      <a [title]="customer.name + ' details'" (click)="navigate(customer.getSelfLinkHref()); $event.preventDefault();" href="#">
         Edit
       </a>
     </td>
