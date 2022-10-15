@@ -25,39 +25,28 @@ namespace Customer.Api.Controllers
         public async Task<IActionResult> List(
             [FromQuery] string? name,
             [FromQuery] int page,
-            [FromQuery] int limit,
+            [FromQuery] int size,
             [FromQuery] string? sort)
         {
-            var pageWithDefault = page == 0 ? 1 : page;
-            var limitWithDefault = limit == 0 ? 20 : limit;
-            var offset = pageWithDefault == 1 ? 0 : (pageWithDefault - 1) * limitWithDefault;
-            var customers = await customerRepository.List(name, offset, limitWithDefault, sort);
+            var sizeWithDefault = size == 0 ? 20 : size;
+            var offset = page * size;
+            var customers = await customerRepository.List(name, offset, sizeWithDefault, sort);
             var count = await customerRepository.Count(name);
-
-            var paginationMetadata = new
-            {
-                totalCount = count,
-                pageSize = limit,
-                currentPage = page,
-            };
-
-            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
-
-            var toReturn = customers.Select(x => ExpandSingleItem(x));
+            var result = customers.Select(x => ExpandSingleItem(x));
 
             return Ok(new
             {
                 _embedded = new {
-                    customers = toReturn
+                    customers = result
                 },
-                _links = new
+                _links = CreateLinksForCollection(page, sizeWithDefault, sort, count),
+                page = new
                 {
-                    self = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List))),
-                    create = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add))),
-                    first = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List))),
-                    next = "",
-                    previous = "",
-                },
+                    size = size,
+                    totalElements = count,
+                    totalPages = (int)Math.Ceiling((float)count / (float)sizeWithDefault),
+                    number = page,
+                }
             });
         }
 
@@ -125,56 +114,39 @@ namespace Customer.Api.Controllers
 
             return Ok(ExpandSingleItem(existingCustomer));
         }
-        /*
-        private List<Link> CreateLinksForCollection(string name, int page, int limit, string sortBy, int count)
+        
+        private dynamic CreateLinksForCollection(int page, int size, string sort, int count)
         {
-            var links = new List<Link>();
+            dynamic links = new ExpandoObject();
 
-            links.Add(
-             new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add))));
-
-            // self 
-            links.Add(
-             new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List), values: new
-             {
-                 name = name,
-                 page = page,
-                 limit = limit,
-                 sortBy = sortBy
-             }), "self", "GET"));
-
-            links.Add(new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List), values: new
+            links.self = new
             {
-                name = name,
-                page = 1,
-                limit = limit,
-                sortBy = sortBy
-            }), "first", "GET"));
+                href = $"{linkGenerator.GetUriByAction(HttpContext, nameof(List))}{{&sort,page,size}}",
+                templated = true,
+            };
+            
+            links.create = new Link(linkGenerator.GetUriByAction(HttpContext, nameof(Add)));
 
-            if (page * limit < count)
+            if ((page + 1) * size < count)
             {
-                links.Add(new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List), values: new
+                links.next = new
                 {
-                    name = name,
-                    page = page + 1,
-                    limit = limit,
-                    sortBy = sortBy
-                }), "next", "GET"));
+                    href = $"{linkGenerator.GetUriByAction(HttpContext, nameof(List))}?page={page + 1}&size={size}{{&sort}}",
+                    templated = true,
+                };
             }
 
-            if (page > 1)
+            if (page > 0)
             {
-                links.Add(new Link(linkGenerator.GetUriByAction(HttpContext, nameof(List), values: new
+                links.prev = new
                 {
-                    name = name,
-                    page = page - 1,
-                    limit = limit,
-                    sortBy = sortBy
-                }), "previous", "GET"));
+                    href = $"{linkGenerator.GetUriByAction(HttpContext, nameof(List))}?page={page - 1}&size={size}{{&sort}}",
+                    templated = true,
+                };
             }
 
             return links;
-        }*/
+        }
 
         private dynamic ExpandSingleItem(CustomerEntity customer)
         {
